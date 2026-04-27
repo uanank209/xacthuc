@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Xác Thực Nhận Thưởng - Sòng Bạc</title>
     <style>
         body {
@@ -10,47 +10,64 @@
             min-height: 100vh; background-color: #0f0f13; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden; text-align: center;
         }
-        h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
+        h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; font-size: 24px; }
         .container { background: #1a1a24; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.2); max-width: 400px; width: 90%; }
         
         /* Nút Bắt Đầu */
         #startBtn {
             background: linear-gradient(45deg, #ff00cc, #3333ff); border: none; color: white; padding: 15px 30px;
-            font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s;
         }
-        #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 0, 204, 0.5); }
+        #startBtn:hover { transform: scale(1.05); }
 
-        /* Vòng quay đếm ngược */
-        .timer-wrapper { position: relative; width: 120px; height: 120px; margin: 20px auto; display: none; }
-        svg { width: 120px; height: 120px; transform: rotate(-90deg); }
-        circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        /* Vòng quay đếm ngược - CSS Chống copy, chống menu chuột phải */
+        .timer-wrapper { 
+            position: relative; width: 140px; height: 140px; margin: 20px auto; display: none; 
+            cursor: pointer;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
+            touch-action: none; /* Chống cuộn trang khi chạm giữ */
+        }
+        /* Hiệu ứng khi đang giữ */
+        .timer-wrapper.holding { transform: scale(0.95); transition: transform 0.1s; }
+
+        svg { width: 140px; height: 140px; transform: rotate(-90deg); }
+        circle { fill: rgba(0, 255, 204, 0.1); stroke-width: 10; stroke-linecap: round; }
         .bg-circle { stroke: #333; }
-        .progress-circle { stroke: #00ffcc; stroke-dasharray: 314; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
-        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold; }
+        .progress-circle { 
+            stroke: #00ffcc; stroke-dasharray: 377; stroke-dashoffset: 377; /* R=60 -> Chu vi = 2 * PI * 60 = 377 */
+        }
+        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; font-weight: bold; pointer-events: none; }
+        .hint-text { position: absolute; top: 75%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #aaa; pointer-events: none; width: 100%;}
 
         /* Icon thành công/thất bại */
-        .status-icon { font-size: 60px; display: none; animation: popIn 0.5s ease; }
+        .status-icon { font-size: 60px; display: none; animation: popIn 0.5s ease; margin-bottom: 15px;}
         .success { color: #00ffcc; text-shadow: 0 0 20px #00ffcc; }
         .error { color: #ff3366; text-shadow: 0 0 20px #ff3366; }
-        #statusText { margin-top: 20px; font-size: 16px; color: #aaa; }
+        #statusText { margin-top: 15px; font-size: 16px; color: #aaa; line-height: 1.5; }
 
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
     <div class="container">
-        <h1>HỆ THỐNG XÁC THỰC</h1>
-        <p id="descText">Vui lòng nhấn nút bên dưới để hệ thống kiểm tra và trả thưởng cho bạn.</p>
+        <h1>XÁC THỰC BẢO MẬT</h1>
+        <p id="descText">Hệ thống cần xác minh bạn không phải là Robot.</p>
         
-        <button id="startBtn">BẮT ĐẦU XÁC THỰC</button>
+        <button id="startBtn">KIỂM TRA BẢO MẬT</button>
 
         <div class="timer-wrapper" id="timerWrapper">
             <svg>
-                <circle class="bg-circle" cx="60" cy="60" r="50"></circle>
-                <circle class="progress-circle" id="progressCircle" cx="60" cy="60" r="50"></circle>
+                <circle class="bg-circle" cx="70" cy="70" r="60"></circle>
+                <circle class="progress-circle" id="progressCircle" cx="70" cy="70" r="60"></circle>
             </svg>
             <div class="time-text" id="timeText">10</div>
+            <div class="hint-text">CHẠM & GIỮ</div>
         </div>
 
         <div class="status-icon success" id="successIcon">✅</div>
@@ -61,11 +78,10 @@
     <audio id="bgMusic" src="nhac.mp3"></audio>
 
     <script>
-        // Lấy idkey từ URL: /?idkey=xyz
         const urlParams = new URLSearchParams(window.location.search);
         const idkey = urlParams.get('idkey');
         
-        // CẤU HÌNH CALLBACK URL CỦA BOT TẠI ĐÂY
+        // URL CALLBACK TRẢ THƯỞNG VỀ BOT
         const BOT_CALLBACK_URL = "http://fi6.bot-hosting.net:20375/api/verify_link";
 
         const startBtn = document.getElementById('startBtn');
@@ -78,57 +94,106 @@
         const bgMusic = document.getElementById('bgMusic');
         const descText = document.getElementById('descText');
 
+        // Biến xử lý đếm ngược
+        let holdTimer;
+        const totalTime = 10000; // 10 giây = 10000ms
+        let timeLeft = totalTime; 
+        const circumference = 377; // Chu vi vòng tròn r=60
+        let isSuccess = false;
+
+        // BƯỚC 1: Bấm nút kiểm tra để quét VPN
         startBtn.addEventListener('click', async () => {
             if(!idkey) {
-                showError("Không tìm thấy IDKey hợp lệ trong đường dẫn!");
+                showError("Không tìm thấy mã xác thực (IDKey) hợp lệ!");
                 return;
             }
 
-            // 1. Phát nhạc & Đổi UI
             bgMusic.volume = 0.5;
-            bgMusic.play().catch(e => console.log("Trình duyệt chặn autoplay audio"));
+            bgMusic.play().catch(e => console.log("Audio autoplay blocked"));
+            
             startBtn.style.display = 'none';
             descText.style.display = 'none';
-            statusText.innerText = "Đang kiểm tra kết nối mạng (Anti-VPN)...";
+            statusText.innerText = "Đang kiểm tra địa chỉ IP (Anti-VPN)...";
 
-            // 2. Kiểm tra VPN/Proxy
             try {
                 const ipRes = await fetch('https://ipwho.is/');
                 const ipData = await ipRes.json();
                 
                 if (ipData.security && (ipData.security.vpn || ipData.security.proxy || ipData.security.tor)) {
-                    showError("PHÁT HIỆN GIAN LẬN: Bạn đang sử dụng VPN hoặc Proxy. Yêu cầu bị từ chối!");
+                    showError("PHÁT HIỆN GIAN LẬN!<br>Bạn đang sử dụng VPN hoặc Proxy.");
                     return;
                 }
             } catch (err) {
-                console.log("Lỗi check IP, bỏ qua để user chơi tiếp.");
+                console.log("Bỏ qua lỗi IP");
             }
 
-            // 3. Đếm ngược 10 giây
-            statusText.innerText = "Đang xác thực bảo mật, vui lòng giữ trang web...";
+            // Quét xong, hiển thị vòng tròn
+            statusText.innerHTML = "<b>HƯỚNG DẪN:</b> Nhấn và <b>GIỮ LIÊN TỤC</b> vào vòng tròn bên trên trong 10 giây để xác nhận.";
             timerWrapper.style.display = 'block';
-            let timeLeft = 10;
-            const radius = 50;
-            const circumference = 2 * Math.PI * radius; // ~314
-
-            const countdown = setInterval(() => {
-                timeLeft--;
-                timeText.innerText = timeLeft;
-                
-                // Hiệu ứng vòng tròn
-                const offset = circumference - (timeLeft / 10) * circumference;
-                progressCircle.style.strokeDashoffset = offset;
-
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    timerWrapper.style.display = 'none';
-                    sendRewardRequest();
-                }
-            }, 1000);
+            updateCircle(timeLeft);
         });
 
+        // BƯỚC 2: LOGIC CHẠM VÀ GIỮ
+        function startHolding(e) {
+            if (isSuccess) return;
+            e.preventDefault(); // Chống click chuột phải / zoom màn hình
+            timerWrapper.classList.add("holding");
+            statusText.innerHTML = "<span style='color:#00ffcc;'>Đang xác thực... Đừng thả tay ra!</span>";
+
+            // Chạy vòng lặp trừ thời gian mỗi 50 mili giây (để vòng tròn chạy mượt)
+            clearInterval(holdTimer);
+            holdTimer = setInterval(() => {
+                timeLeft -= 50;
+                updateCircle(timeLeft);
+
+                if (timeLeft <= 0) {
+                    clearInterval(holdTimer);
+                    completeHolding();
+                }
+            }, 50);
+        }
+
+        function stopHolding(e) {
+            if (isSuccess) return;
+            e.preventDefault();
+            timerWrapper.classList.remove("holding");
+            clearInterval(holdTimer);
+            
+            // Nếu thả tay trước khi hết giờ -> RESET LẠI TỪ ĐẦU
+            if (timeLeft > 0 && timeLeft < totalTime) {
+                timeLeft = totalTime;
+                updateCircle(timeLeft);
+                statusText.innerHTML = "<span style='color:#ff3366;font-weight:bold;'>BẠN ĐÃ THẢ TAY!</span><br>Thời gian đã bị làm mới. Vui lòng giữ liên tục 10 giây.";
+            }
+        }
+
+        function updateCircle(timeRemaining) {
+            // Cập nhật số giây ở giữa (làm tròn lên)
+            timeText.innerText = Math.ceil(timeRemaining / 1000);
+            
+            // Cập nhật viền tròn
+            const percent = timeRemaining / totalTime;
+            const offset = percent * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+        }
+
+        // BƯỚC 3: KHI GIỮ ĐỦ THỜI GIAN
+        function completeHolding() {
+            isSuccess = true;
+            timerWrapper.classList.remove("holding");
+            progressCircle.style.strokeDashoffset = 0; // Đổ đầy vòng tròn
+            timeText.innerText = "OK";
+            
+            // Xóa sự kiện lắng nghe để người dùng không bấm được nữa
+            timerWrapper.removeEventListener('mousedown', startHolding);
+            timerWrapper.removeEventListener('touchstart', startHolding);
+            
+            sendRewardRequest();
+        }
+
+        // BƯỚC 4: GỬI LỆNH TRẢ THƯỞNG
         async function sendRewardRequest() {
-            statusText.innerText = "Đang gửi yêu cầu trả thưởng lên Server...";
+            statusText.innerText = "Đang đồng bộ dữ liệu với Máy chủ Bot...";
             try {
                 const response = await fetch(BOT_CALLBACK_URL, {
                     method: 'POST',
@@ -139,13 +204,14 @@
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
+                    timerWrapper.style.display = 'none';
                     successIcon.style.display = 'block';
-                    statusText.innerHTML = `<span style="color:#00ffcc;font-weight:bold;">XÁC THỰC THÀNH CÔNG!</span><br>Tiền đã được cộng vào Bot. Bạn có thể đóng tab này.`;
+                    statusText.innerHTML = `<span style="color:#00ffcc;font-weight:bold;font-size:20px;">XÁC THỰC THÀNH CÔNG!</span><br><br>Tiền thưởng đã được cộng vào tài khoản của bạn trên Server Discord. Bạn có thể đóng tab này!`;
                 } else {
-                    showError("Lỗi hệ thống: " + (result.message || "Key đã hết hạn hoặc đã được sử dụng."));
+                    showError("Lỗi từ Bot: " + (result.message || "Key đã hết hạn hoặc đã được sử dụng."));
                 }
             } catch (error) {
-                showError("Lỗi kết nối tới Máy chủ Bot. Vui lòng thử lại sau!");
+                showError("Không thể kết nối đến Bot Sòng Bạc. Vui lòng kiểm tra lại Bot có đang chạy hay không!");
             }
         }
 
@@ -153,8 +219,20 @@
             timerWrapper.style.display = 'none';
             startBtn.style.display = 'none';
             errorIcon.style.display = 'block';
-            statusText.innerHTML = `<span style="color:#ff3366;">${msg}</span>`;
+            statusText.innerHTML = msg;
         }
+
+        // GẮN SỰ KIỆN CHẠM/GIỮ (Cho cả PC và Mobile)
+        // Chuột PC
+        timerWrapper.addEventListener('mousedown', startHolding);
+        timerWrapper.addEventListener('mouseup', stopHolding);
+        timerWrapper.addEventListener('mouseleave', stopHolding); // Rê chuột ra khỏi vòng tròn cũng tính là thả tay
+        
+        // Cảm ứng Mobile
+        timerWrapper.addEventListener('touchstart', startHolding, {passive: false});
+        timerWrapper.addEventListener('touchend', stopHolding, {passive: false});
+        timerWrapper.addEventListener('touchcancel', stopHolding, {passive: false});
+
     </script>
 </body>
 </html>
