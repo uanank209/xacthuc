@@ -13,40 +13,27 @@
         h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; font-size: 24px; }
         .container { background: #1a1a24; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.2); max-width: 400px; width: 90%; }
         
-        /* Nút Bắt Đầu */
         #startBtn {
             background: linear-gradient(45deg, #ff00cc, #3333ff); border: none; color: white; padding: 15px 30px;
             font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s;
         }
         #startBtn:hover { transform: scale(1.05); }
 
-        /* Vòng quay đếm ngược - CSS Chống copy, chống menu chuột phải */
         .timer-wrapper { 
             position: relative; width: 140px; height: 140px; margin: 20px auto; display: none; 
             cursor: pointer;
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            -khtml-user-select: none; /* Konqueror HTML */
-            -moz-user-select: none; /* Old versions of Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
-            touch-action: none; /* Chống cuộn trang khi chạm giữ */
+            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; 
         }
-        /* Hiệu ứng khi đang giữ */
         .timer-wrapper.holding { transform: scale(0.95); transition: transform 0.1s; }
 
         svg { width: 140px; height: 140px; transform: rotate(-90deg); }
         circle { fill: rgba(0, 255, 204, 0.1); stroke-width: 10; stroke-linecap: round; }
         .bg-circle { stroke: #333; }
-        .progress-circle { 
-            stroke: #00ffcc; stroke-dasharray: 377; stroke-dashoffset: 377; /* R=60 -> Chu vi = 2 * PI * 60 = 377 */
-        }
+        .progress-circle { stroke: #00ffcc; stroke-dasharray: 377; stroke-dashoffset: 377; }
         .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; font-weight: bold; pointer-events: none; }
         .hint-text { position: absolute; top: 75%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #aaa; pointer-events: none; width: 100%;}
 
-        /* Icon thành công/thất bại */
         .status-icon { font-size: 60px; display: none; animation: popIn 0.5s ease; margin-bottom: 15px;}
-        .success { color: #00ffcc; text-shadow: 0 0 20px #00ffcc; }
         .error { color: #ff3366; text-shadow: 0 0 20px #ff3366; }
         #statusText { margin-top: 15px; font-size: 16px; color: #aaa; line-height: 1.5; }
 
@@ -70,7 +57,6 @@
             <div class="hint-text">CHẠM & GIỮ</div>
         </div>
 
-        <div class="status-icon success" id="successIcon">✅</div>
         <div class="status-icon error" id="errorIcon">❌</div>
         <div id="statusText"></div>
     </div>
@@ -81,7 +67,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const idkey = urlParams.get('idkey');
         
-        // URL CALLBACK TRẢ THƯỞNG VỀ BOT
+        // ĐỊA CHỈ NHẬN CHUYỂN HƯỚNG CỦA BOT TẠI BOT-HOSTING
         const BOT_CALLBACK_URL = "http://fi6.bot-hosting.net:20375/api/verify_link";
 
         const startBtn = document.getElementById('startBtn');
@@ -89,19 +75,16 @@
         const timeText = document.getElementById('timeText');
         const progressCircle = document.getElementById('progressCircle');
         const statusText = document.getElementById('statusText');
-        const successIcon = document.getElementById('successIcon');
         const errorIcon = document.getElementById('errorIcon');
         const bgMusic = document.getElementById('bgMusic');
         const descText = document.getElementById('descText');
 
-        // Biến xử lý đếm ngược
         let holdTimer;
-        const totalTime = 10000; // 10 giây = 10000ms
+        const totalTime = 10000; 
         let timeLeft = totalTime; 
-        const circumference = 377; // Chu vi vòng tròn r=60
+        const circumference = 377; 
         let isSuccess = false;
 
-        // BƯỚC 1: Bấm nút kiểm tra để quét VPN
         startBtn.addEventListener('click', async () => {
             if(!idkey) {
                 showError("Không tìm thấy mã xác thực (IDKey) hợp lệ!");
@@ -109,7 +92,7 @@
             }
 
             bgMusic.volume = 0.5;
-            bgMusic.play().catch(e => console.log("Audio autoplay blocked"));
+            bgMusic.play().catch(e => console.log("Audio block"));
             
             startBtn.style.display = 'none';
             descText.style.display = 'none';
@@ -124,23 +107,20 @@
                     return;
                 }
             } catch (err) {
-                console.log("Bỏ qua lỗi IP");
+                console.log("Bỏ qua lỗi kiểm tra IP");
             }
 
-            // Quét xong, hiển thị vòng tròn
             statusText.innerHTML = "<b>HƯỚNG DẪN:</b> Nhấn và <b>GIỮ LIÊN TỤC</b> vào vòng tròn bên trên trong 10 giây để xác nhận.";
             timerWrapper.style.display = 'block';
             updateCircle(timeLeft);
         });
 
-        // BƯỚC 2: LOGIC CHẠM VÀ GIỮ
         function startHolding(e) {
             if (isSuccess) return;
-            e.preventDefault(); // Chống click chuột phải / zoom màn hình
+            e.preventDefault(); 
             timerWrapper.classList.add("holding");
             statusText.innerHTML = "<span style='color:#00ffcc;'>Đang xác thực... Đừng thả tay ra!</span>";
 
-            // Chạy vòng lặp trừ thời gian mỗi 50 mili giây (để vòng tròn chạy mượt)
             clearInterval(holdTimer);
             holdTimer = setInterval(() => {
                 timeLeft -= 50;
@@ -159,7 +139,6 @@
             timerWrapper.classList.remove("holding");
             clearInterval(holdTimer);
             
-            // Nếu thả tay trước khi hết giờ -> RESET LẠI TỪ ĐẦU
             if (timeLeft > 0 && timeLeft < totalTime) {
                 timeLeft = totalTime;
                 updateCircle(timeLeft);
@@ -168,51 +147,28 @@
         }
 
         function updateCircle(timeRemaining) {
-            // Cập nhật số giây ở giữa (làm tròn lên)
             timeText.innerText = Math.ceil(timeRemaining / 1000);
-            
-            // Cập nhật viền tròn
             const percent = timeRemaining / totalTime;
             const offset = percent * circumference;
             progressCircle.style.strokeDashoffset = offset;
         }
 
-        // BƯỚC 3: KHI GIỮ ĐỦ THỜI GIAN
         function completeHolding() {
             isSuccess = true;
             timerWrapper.classList.remove("holding");
-            progressCircle.style.strokeDashoffset = 0; // Đổ đầy vòng tròn
+            progressCircle.style.strokeDashoffset = 0; 
             timeText.innerText = "OK";
             
-            // Xóa sự kiện lắng nghe để người dùng không bấm được nữa
             timerWrapper.removeEventListener('mousedown', startHolding);
             timerWrapper.removeEventListener('touchstart', startHolding);
             
             sendRewardRequest();
         }
 
-        // BƯỚC 4: GỬI LỆNH TRẢ THƯỞNG
-        async function sendRewardRequest() {
-            statusText.innerText = "Đang đồng bộ dữ liệu với Máy chủ Bot...";
-            try {
-                const response = await fetch(BOT_CALLBACK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idkey: idkey })
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.status === 'success') {
-                    timerWrapper.style.display = 'none';
-                    successIcon.style.display = 'block';
-                    statusText.innerHTML = `<span style="color:#00ffcc;font-weight:bold;font-size:20px;">XÁC THỰC THÀNH CÔNG!</span><br><br>Tiền thưởng đã được cộng vào tài khoản của bạn trên Server Discord. Bạn có thể đóng tab này!`;
-                } else {
-                    showError("Lỗi từ Bot: " + (result.message || "Key đã hết hạn hoặc đã được sử dụng."));
-                }
-            } catch (error) {
-                showError("Không thể kết nối đến Bot Sòng Bạc. Vui lòng kiểm tra lại Bot có đang chạy hay không!");
-            }
+        function sendRewardRequest() {
+            statusText.innerHTML = "<span style='color:#00ffcc;'>Xác thực xong! Đang chuyển hướng về Hệ Thống Sòng Bạc...</span>";
+            // CHUYỂN HƯỚNG TRỰC TIẾP VỀ BOT (GIẢI QUYẾT LỖI MIXED CONTENT HTTPS -> HTTP)
+            window.location.href = BOT_CALLBACK_URL + "?idkey=" + idkey;
         }
 
         function showError(msg) {
@@ -222,17 +178,15 @@
             statusText.innerHTML = msg;
         }
 
-        // GẮN SỰ KIỆN CHẠM/GIỮ (Cho cả PC và Mobile)
         // Chuột PC
         timerWrapper.addEventListener('mousedown', startHolding);
         timerWrapper.addEventListener('mouseup', stopHolding);
-        timerWrapper.addEventListener('mouseleave', stopHolding); // Rê chuột ra khỏi vòng tròn cũng tính là thả tay
+        timerWrapper.addEventListener('mouseleave', stopHolding); 
         
         // Cảm ứng Mobile
         timerWrapper.addEventListener('touchstart', startHolding, {passive: false});
         timerWrapper.addEventListener('touchend', stopHolding, {passive: false});
         timerWrapper.addEventListener('touchcancel', stopHolding, {passive: false});
-
     </script>
 </body>
 </html>
