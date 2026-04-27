@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác Thực Nhận Thưởng - Sòng Bạc</title>
+    <style>
+        body {
+            margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; background-color: #0f0f13; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden; text-align: center;
+        }
+        h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
+        .container { background: #1a1a24; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.2); max-width: 400px; width: 90%; }
+        
+        /* Nút Bắt Đầu */
+        #startBtn {
+            background: linear-gradient(45deg, #ff00cc, #3333ff); border: none; color: white; padding: 15px 30px;
+            font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        #startBtn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 0, 204, 0.5); }
+
+        /* Vòng quay đếm ngược */
+        .timer-wrapper { position: relative; width: 120px; height: 120px; margin: 20px auto; display: none; }
+        svg { width: 120px; height: 120px; transform: rotate(-90deg); }
+        circle { fill: none; stroke-width: 8; stroke-linecap: round; }
+        .bg-circle { stroke: #333; }
+        .progress-circle { stroke: #00ffcc; stroke-dasharray: 314; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold; }
+
+        /* Icon thành công/thất bại */
+        .status-icon { font-size: 60px; display: none; animation: popIn 0.5s ease; }
+        .success { color: #00ffcc; text-shadow: 0 0 20px #00ffcc; }
+        .error { color: #ff3366; text-shadow: 0 0 20px #ff3366; }
+        #statusText { margin-top: 20px; font-size: 16px; color: #aaa; }
+
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>HỆ THỐNG XÁC THỰC</h1>
+        <p id="descText">Vui lòng nhấn nút bên dưới để hệ thống kiểm tra và trả thưởng cho bạn.</p>
+        
+        <button id="startBtn">BẮT ĐẦU XÁC THỰC</button>
+
+        <div class="timer-wrapper" id="timerWrapper">
+            <svg>
+                <circle class="bg-circle" cx="60" cy="60" r="50"></circle>
+                <circle class="progress-circle" id="progressCircle" cx="60" cy="60" r="50"></circle>
+            </svg>
+            <div class="time-text" id="timeText">10</div>
+        </div>
+
+        <div class="status-icon success" id="successIcon">✅</div>
+        <div class="status-icon error" id="errorIcon">❌</div>
+        <div id="statusText"></div>
+    </div>
+
+    <audio id="bgMusic" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
+
+    <script>
+        // Lấy idkey từ URL: /?idkey=xyz
+        const urlParams = new URLSearchParams(window.location.search);
+        const idkey = urlParams.get('idkey');
+        
+        // CẤU HÌNH CALLBACK URL CỦA BOT TẠI ĐÂY
+        const BOT_CALLBACK_URL = "http://fi6.bot-hosting.net:20375/api/verify_link";
+
+        const startBtn = document.getElementById('startBtn');
+        const timerWrapper = document.getElementById('timerWrapper');
+        const timeText = document.getElementById('timeText');
+        const progressCircle = document.getElementById('progressCircle');
+        const statusText = document.getElementById('statusText');
+        const successIcon = document.getElementById('successIcon');
+        const errorIcon = document.getElementById('errorIcon');
+        const bgMusic = document.getElementById('bgMusic');
+        const descText = document.getElementById('descText');
+
+        startBtn.addEventListener('click', async () => {
+            if(!idkey) {
+                showError("Không tìm thấy IDKey hợp lệ trong đường dẫn!");
+                return;
+            }
+
+            // 1. Phát nhạc & Đổi UI
+            bgMusic.volume = 0.5;
+            bgMusic.play().catch(e => console.log("Trình duyệt chặn autoplay audio"));
+            startBtn.style.display = 'none';
+            descText.style.display = 'none';
+            statusText.innerText = "Đang kiểm tra kết nối mạng (Anti-VPN)...";
+
+            // 2. Kiểm tra VPN/Proxy
+            try {
+                const ipRes = await fetch('https://ipwho.is/');
+                const ipData = await ipRes.json();
+                
+                if (ipData.security && (ipData.security.vpn || ipData.security.proxy || ipData.security.tor)) {
+                    showError("PHÁT HIỆN GIAN LẬN: Bạn đang sử dụng VPN hoặc Proxy. Yêu cầu bị từ chối!");
+                    return;
+                }
+            } catch (err) {
+                console.log("Lỗi check IP, bỏ qua để user chơi tiếp.");
+            }
+
+            // 3. Đếm ngược 10 giây
+            statusText.innerText = "Đang xác thực bảo mật, vui lòng giữ trang web...";
+            timerWrapper.style.display = 'block';
+            let timeLeft = 10;
+            const radius = 50;
+            const circumference = 2 * Math.PI * radius; // ~314
+
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timeText.innerText = timeLeft;
+                
+                // Hiệu ứng vòng tròn
+                const offset = circumference - (timeLeft / 10) * circumference;
+                progressCircle.style.strokeDashoffset = offset;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    timerWrapper.style.display = 'none';
+                    sendRewardRequest();
+                }
+            }, 1000);
+        });
+
+        async function sendRewardRequest() {
+            statusText.innerText = "Đang gửi yêu cầu trả thưởng lên Server...";
+            try {
+                const response = await fetch(BOT_CALLBACK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idkey: idkey })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    successIcon.style.display = 'block';
+                    statusText.innerHTML = `<span style="color:#00ffcc;font-weight:bold;">XÁC THỰC THÀNH CÔNG!</span><br>Tiền đã được cộng vào Bot. Bạn có thể đóng tab này.`;
+                } else {
+                    showError("Lỗi hệ thống: " + (result.message || "Key đã hết hạn hoặc đã được sử dụng."));
+                }
+            } catch (error) {
+                showError("Lỗi kết nối tới Máy chủ Bot. Vui lòng thử lại sau!");
+            }
+        }
+
+        function showError(msg) {
+            timerWrapper.style.display = 'none';
+            startBtn.style.display = 'none';
+            errorIcon.style.display = 'block';
+            statusText.innerHTML = `<span style="color:#ff3366;">${msg}</span>`;
+        }
+    </script>
+</body>
+</html>
