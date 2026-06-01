@@ -3,190 +3,409 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xác Thực Nhận Thưởng - Sòng Bạc</title>
+    <title>Lấy Key Nhận Task Bot War Tuấn Ank</title>
+    
+    <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+    
     <style>
+        /* FONTS VÀ PHONG CÁCH NEON ANIME/WIBU ĐẸP MẮT */
+        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;900&family=Orbitron:wght@600;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
         body {
-            margin: 0; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100vh; background-color: #0f0f13; color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden; text-align: center;
+            font-family: 'M PLUS Rounded 1c', 'Orbitron', sans-serif;
+            /* Hình nền Anime Waifu phong cách Cyberpunk/Lofi tối cuốn hút */
+            background: url('https://images3.alphacoders.com/132/1321743.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
         }
-        h1 { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; font-size: 24px; }
-        .container { background: #1a1a24; padding: 40px; border-radius: 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.2); max-width: 400px; width: 90%; }
-        
-        #startBtn {
-            background: linear-gradient(45deg, #ff00cc, #3333ff); border: none; color: white; padding: 15px 30px;
-            font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: transform 0.2s;
-        }
-        #startBtn:hover { transform: scale(1.05); }
 
-        .timer-wrapper { 
-            position: relative; width: 140px; height: 140px; margin: 20px auto; display: none; 
+        /* Lớp phủ chuyển màu huyền ảo tối ưu độ tương phản cho Web */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(19, 11, 36, 0.75), rgba(9, 5, 16, 0.85));
+            z-index: 0;
+        }
+
+        /* KHUNG CHỨA GIAO DIỆN (GLASSMORPHISM) */
+        .card-container {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 430px;
+            background: rgba(20, 16, 35, 0.65);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid #ff007f;
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
+            border-radius: 20px;
+            padding: 40px 25px;
+            text-align: center;
+            border-bottom: 5px solid #00f2fe;
+        }
+
+        /* THIẾT KẾ TEXT H1 */
+        h1 {
+            font-size: 24px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #ffffff;
+            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        /* HỆ THỐNG PHÂN CHIA BƯỚC MƯỢT MÀ */
+        .step-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .step-panel.active {
+            display: flex;
+            animation: animeShow 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes animeShow {
+            0% { opacity: 0; transform: scale(0.9) translateY(15px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        p.description {
+            font-size: 15px;
+            color: #e0e0fc;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 0 0 4px rgba(0,0,0,0.6);
+        }
+
+        /* NÚT BẤM VÀO WEB */
+        .action-btn {
+            background: linear-gradient(90deg, #ff007f, #7f00ff);
+            color: #fff;
+            border: none;
+            padding: 14px 30px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 15px;
+            font-weight: 900;
+            border-radius: 50px;
             cursor: pointer;
-            -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: none; 
+            box-shadow: 0 0 15px #ff007f;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .timer-wrapper.holding { transform: scale(0.95); transition: transform 0.1s; }
 
-        svg { width: 140px; height: 140px; transform: rotate(-90deg); }
-        circle { fill: rgba(0, 255, 204, 0.1); stroke-width: 10; stroke-linecap: round; }
-        .bg-circle { stroke: #333; }
-        .progress-circle { stroke: #00ffcc; stroke-dasharray: 377; stroke-dashoffset: 377; }
-        .time-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 30px; font-weight: bold; pointer-events: none; }
-        .hint-text { position: absolute; top: 75%; left: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #aaa; pointer-events: none; width: 100%;}
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px #ff007f, 0 0 10px #00f2fe;
+        }
 
-        .status-icon { font-size: 60px; display: none; animation: popIn 0.5s ease; margin-bottom: 15px;}
-        .error { color: #ff3366; text-shadow: 0 0 20px #ff3366; }
-        #statusText { margin-top: 15px; font-size: 16px; color: #aaa; line-height: 1.5; }
+        /* SỐ ĐẾM TO TOẢ SÁNG */
+        .glow-counter {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 55px;
+            font-weight: 900;
+            margin: 15px 0;
+            color: #00f2fe;
+            text-shadow: 0 0 15px #00f2fe, 0 0 30px #ff007f;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
 
-        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .sub-hint {
+            font-size: 12px;
+            color: #ffb700;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        /* ĐÁP ỨNG YÊU CẦU 5: Ô INPUT CHỨA KEY NHÌN LÀ MUỐN BẤM VÀO */
+        .key-input-box {
+            width: 100%;
+            padding: 16px;
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            color: #00f2fe;
+            background: rgba(10, 7, 20, 0.8);
+            border: 2px dashed #ff007f;
+            border-radius: 12px;
+            text-align: center;
+            outline: none;
+            cursor: pointer;
+            box-shadow: inset 0 0 10px rgba(255, 0, 127, 0.5);
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .key-input-box:hover {
+            border-color: #00f2fe;
+            background: rgba(20, 10, 35, 0.95);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        /* BONG BÓNG THÔNG BÁO COPY (Ẩn đi và chỉ hiện khi click chép) */
+        .toast-msg {
+            display: none;
+            color: #00ff66;
+            font-size: 13px;
+            font-weight: 900;
+            margin-top: 12px;
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.98); opacity: 0.8; }
+            100% { transform: scale(1.02); opacity: 1; }
+        }
+
+        /* SÓNG MUSIC VISUALIZER MÀU SẮC DANCE */
+        .music-bars {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 35px;
+            gap: 5px;
+            margin-top: 25px;
+        }
+
+        .m-bar {
+            width: 6px;
+            height: 5px;
+            background: #ff007f;
+            border-radius: 3px 3px 0 0;
+            animation: dance 0.5s ease-in-out infinite alternate;
+            box-shadow: 0 0 8px #ff007f;
+        }
+        .m-bar:nth-child(2) { background: #7f00ff; animation-delay: 0.1s; box-shadow: 0 0 8px #7f00ff; }
+        .m-bar:nth-child(3) { background: #00f2fe; animation-delay: 0.2s; box-shadow: 0 0 8px #00f2fe; }
+        .m-bar:nth-child(4) { background: #ffff00; animation-delay: 0.3s; box-shadow: 0 0 8px #ffff00; }
+        .m-bar:nth-child(5) { background: #ff007f; animation-delay: 0.15s; box-shadow: 0 0 8px #ff007f; }
+
+        @keyframes dance {
+            0% { height: 6px; transform: scaleY(1); }
+            100% { height: 35px; transform: scaleY(1.1); }
+        }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <div class="container">
-        <h1>XÁC THỰC BẢO MẬT</h1>
-        <p id="descText">Hệ thống cần xác minh bạn không phải là Robot.</p>
-        
-        <button id="startBtn">KIỂM TRA BẢO MẬT</button>
+    <audio id="audioStream" src="nhac.mp3" loop></audio>
 
-        <div class="timer-wrapper" id="timerWrapper">
-            <svg>
-                <circle class="bg-circle" cx="70" cy="70" r="60"></circle>
-                <circle class="progress-circle" id="progressCircle" cx="70" cy="70" r="60"></circle>
-            </svg>
-            <div class="time-text" id="timeText">10</div>
-            <div class="hint-text">CHẠM & GIỮ</div>
+    <div class="card-container">
+        <h1>Lấy Key Nhận Task Bot War Tuấn Ank</h1>
+
+        <div id="panel-start" class="step-panel active">
+            <p class="description">Chào mừng bạn! Hệ thống mã hóa đã sẵn sàng khởi chạy.</p>
+            <button class="action-btn" onclick="initializeSystem()">CLICK ĐỂ TIẾP TỤC</button>
+            <div class="music-bars">
+                <div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div>
+            </div>
         </div>
 
-        <div class="status-icon error" id="errorIcon">❌</div>
-        <div id="statusText"></div>
+        <div id="panel-step1" class="step-panel">
+            <p class="description">Bước 1: Xác thực Capcha bảo vệ hệ thống</p>
+            <div class="h-captcha" data-sitekey="3d4889fe-b8ac-4fc0-9502-57fcc8cece26" data-callback="captchaPassed"></div>
+        </div>
+
+        <div id="panel-step2" class="step-panel">
+            <p class="description">Bước 2: Cầm điện thoại và lắc mạnh 5 lần liên tục</p>
+            <div class="glow-counter" id="shake-display" onclick="pcBypassClick()">0/5</div>
+            <p class="sub-hint">⚠️ Dừng lại giữa chừng hoặc không lắc sẽ tự động Reset về 0/5!</p>
+        </div>
+
+        <div id="panel-step3" class="step-panel">
+            <p class="description">Bước 3: Vui lòng đợi cấu hình mã hóa Key...</p>
+            <div class="glow-counter" id="timer-display">10s</div>
+        </div>
+
+        <div id="panel-final" class="step-panel">
+            <p class="description" style="color: #00ff66;">🎉 Chúc mừng! Đã tạo Key thành công.</p>
+            <p class="sub-hint" style="margin-bottom: 5px; color: #fff;">Chạm trực tiếp vào ô bên dưới để tự động sao chép:</p>
+            
+            <input type="text" id="generated-key-field" class="key-input-box" readonly onclick="autoCopyKey(this)">
+            
+            <div class="toast-msg" id="toast-notify">⚡ ĐÃ TỰ ĐỘNG SAO CHÉP KEY THÀNH CÔNG!</div>
+        </div>
     </div>
 
-    <audio id="bgMusic" src="nhac.mp3"></audio>
-
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const idkey = urlParams.get('idkey');
-        
-        // ĐỊA CHỈ NHẬN CHUYỂN HƯỚNG CỦA BOT TẠI BOT-HOSTING
-        const BOT_CALLBACK_URL = "http://fi6.bot-hosting.net:20375/api/verify_link";
+        let stage = 0;
+        let shakePoints = 0;
+        let lastCheck = 0;
+        let idleResetTimer = null;
 
-        const startBtn = document.getElementById('startBtn');
-        const timerWrapper = document.getElementById('timerWrapper');
-        const timeText = document.getElementById('timeText');
-        const progressCircle = document.getElementById('progressCircle');
-        const statusText = document.getElementById('statusText');
-        const errorIcon = document.getElementById('errorIcon');
-        const bgMusic = document.getElementById('bgMusic');
-        const descText = document.getElementById('descText');
+        function initializeSystem() {
+            // Kích hoạt âm nhạc
+            const track = document.getElementById('audioStream');
+            track.volume = 0.6;
+            track.play().catch(err => console.log("Không thể tự phát nhạc: ", err));
 
-        let holdTimer;
-        const totalTime = 10000; 
-        let timeLeft = totalTime; 
-        const circumference = 377; 
-        let isSuccess = false;
-
-        startBtn.addEventListener('click', async () => {
-            if(!idkey) {
-                showError("Không tìm thấy mã xác thực (IDKey) hợp lệ!");
-                return;
+            // Xin quyền thiết bị nếu dùng iOS
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission().then(state => {
+                    if (state === 'granted') console.log("Sensors active");
+                }).catch(console.error);
             }
+            changeStage(1);
+        }
 
-            bgMusic.volume = 0.5;
-            bgMusic.play().catch(e => console.log("Audio block"));
+        // Logic UI chuyển bước
+        function changeStage(targetStage) {
+            stage = targetStage;
+            document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
             
-            startBtn.style.display = 'none';
-            descText.style.display = 'none';
-            statusText.innerText = "Đang kiểm tra địa chỉ IP (Anti-VPN)...";
+            if (targetStage === 1) {
+                document.getElementById('panel-step1').classList.add('active');
+            } else if (targetStage === 2) {
+                document.getElementById('panel-step2').classList.add('active');
+                activateShakeTracking();
+            } else if (targetStage === 3) {
+                document.getElementById('panel-step3').classList.add('active');
+                runCountdown();
+            } else if (targetStage === 4) {
+                document.getElementById('panel-final').classList.add('active');
+                buildRandomKey();
+            }
+        }
 
-            try {
-                const ipRes = await fetch('https://ipwho.is/');
-                const ipData = await ipRes.json();
-                
-                if (ipData.security && (ipData.security.vpn || ipData.security.proxy || ipData.security.tor)) {
-                    showError("PHÁT HIỆN GIAN LẬN!<br>Bạn đang sử dụng VPN hoặc Proxy.");
-                    return;
+        function captchaPassed(token) {
+            setTimeout(() => { changeStage(2); }, 500);
+        }
+
+        /* ===== MODULE LẮC ĐIỆN THOẠI CỰC CHUẨN ===== */
+        function motionTrigger(event) {
+            if (stage !== 2) return;
+            
+            let movement = event.accelerationIncludingGravity;
+            if (!movement || movement.x === null) return;
+
+            let magnitude = Math.sqrt(movement.x * movement.x + movement.y * movement.y + movement.z * movement.z);
+            let timeNow = Date.now();
+
+            if (magnitude > 19) {
+                if (timeNow - lastCheck > 380) { // Không tính lắc đôi nếu quá sát nhau
+                    shakePoints++;
+                    lastCheck = timeNow;
+                    document.getElementById('shake-display').innerText = shakePoints + "/5";
+
+                    // Hủy Timer cũ. Nếu ngừng lắc 2 giây thì reset số 0/5 (Timeout)
+                    clearTimeout(idleResetTimer);
+                    idleResetTimer = setTimeout(() => {
+                        shakePoints = 0;
+                        document.getElementById('shake-count-display-bypass-text')?.remove();
+                        document.getElementById('shake-display').innerText = "0/5";
+                    }, 2000);
+
+                    // Đạt 5 lần lắc thì chuyển màn hình ngay
+                    if (shakePoints >= 5) {
+                        clearTimeout(idleResetTimer);
+                        window.removeEventListener('devicemotion', motionTrigger);
+                        setTimeout(() => { changeStage(3); }, 500);
+                    }
                 }
-            } catch (err) {
-                console.log("Bỏ qua lỗi kiểm tra IP");
             }
+        }
 
-            statusText.innerHTML = "<b>HƯỚNG DẪN:</b> Nhấn và <b>GIỮ LIÊN TỤC</b> vào vòng tròn bên trên trong 10 giây để xác nhận.";
-            timerWrapper.style.display = 'block';
-            updateCircle(timeLeft);
-        });
+        function activateShakeTracking() {
+            if (typeof DeviceMotionEvent === 'undefined') {
+                document.getElementById('shake-display').innerText = "0/5";
+                let tip = document.createElement("p");
+                tip.id = "shake-count-display-bypass-text";
+                tip.className = "sub-hint";
+                tip.innerText = "(Thiết bị không có cảm biến, hãy bấm chuột trực tiếp vào số '0/5' để qua)";
+                document.getElementById('panel-step2').appendChild(tip);
+            } else {
+                window.addEventListener('devicemotion', motionTrigger);
+            }
+        }
 
-        function startHolding(e) {
-            if (isSuccess) return;
-            e.preventDefault(); 
-            timerWrapper.classList.add("holding");
-            statusText.innerHTML = "<span style='color:#00ffcc;'>Đang xác thực... Đừng thả tay ra!</span>";
+        function pcBypassClick() {
+            if (stage !== 2) return;
+            shakePoints++;
+            document.getElementById('shake-display').innerText = shakePoints + "/5";
+            
+            clearTimeout(idleResetTimer);
+            idleResetTimer = setTimeout(() => {
+                shakePoints = 0;
+                document.getElementById('shake-display').innerText = "0/5";
+            }, 2000);
 
-            clearInterval(holdTimer);
-            holdTimer = setInterval(() => {
-                timeLeft -= 50;
-                updateCircle(timeLeft);
+            if (shakePoints >= 5) {
+                clearTimeout(idleResetTimer);
+                window.removeEventListener('devicemotion', motionTrigger);
+                setTimeout(() => { changeStage(3); }, 400);
+            }
+        }
 
-                if (timeLeft <= 0) {
-                    clearInterval(holdTimer);
-                    completeHolding();
+        /* ===== ĐẾM NGƯỢC 10 GIÂY ===== */
+        function runCountdown() {
+            let secondsLeft = 10;
+            const timerView = document.getElementById('timer-display');
+            timerView.innerText = secondsLeft + "s";
+
+            let clock = setInterval(() => {
+                secondsLeft--;
+                timerView.innerText = secondsLeft + "s";
+
+                if (secondsLeft <= 0) {
+                    clearInterval(clock);
+                    changeStage(4);
                 }
-            }, 50);
+            }, 1000);
         }
 
-        function stopHolding(e) {
-            if (isSuccess) return;
-            e.preventDefault();
-            timerWrapper.classList.remove("holding");
-            clearInterval(holdTimer);
-            
-            if (timeLeft > 0 && timeLeft < totalTime) {
-                timeLeft = totalTime;
-                updateCircle(timeLeft);
-                statusText.innerHTML = "<span style='color:#ff3366;font-weight:bold;'>BẠN ĐÃ THẢ TAY!</span><br>Thời gian đã bị làm mới. Vui lòng giữ liên tục 10 giây.";
+        /* ===== TẠO KEY & TÍNH NĂNG TỰ SAO CHÉP ===== */
+        function buildRandomKey() {
+            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let outKey = '';
+            for (let i = 0; i < 20; i++) {
+                outKey += characters.charAt(Math.floor(Math.random() * characters.length));
             }
+            document.getElementById('generated-key-field').value = outKey;
         }
 
-        function updateCircle(timeRemaining) {
-            timeText.innerText = Math.ceil(timeRemaining / 1000);
-            const percent = timeRemaining / totalTime;
-            const offset = percent * circumference;
-            progressCircle.style.strokeDashoffset = offset;
-        }
-
-        function completeHolding() {
-            isSuccess = true;
-            timerWrapper.classList.remove("holding");
-            progressCircle.style.strokeDashoffset = 0; 
-            timeText.innerText = "OK";
+        // KHI NGƯỜI DÙNG CHẠM/CLICK VÀO TEXTBOX LÀ TỰ COPY
+        function autoCopyKey(inputElement) {
+            if (!inputElement.value) return;
             
-            timerWrapper.removeEventListener('mousedown', startHolding);
-            timerWrapper.removeEventListener('touchstart', startHolding);
-            
-            sendRewardRequest();
+            navigator.clipboard.writeText(inputElement.value).then(() => {
+                triggerToastEffect();
+            }).catch(() => {
+                inputElement.select();
+                inputElement.setSelectionRange(0, 99999);
+                document.execCommand("copy");
+                triggerToastEffect();
+            });
         }
 
-        function sendRewardRequest() {
-            statusText.innerHTML = "<span style='color:#00ffcc;'>Xác thực xong! Đang chuyển hướng về Hệ Thống Sòng Bạc...</span>";
-            // CHUYỂN HƯỚNG TRỰC TIẾP VỀ BOT (GIẢI QUYẾT LỖI MIXED CONTENT HTTPS -> HTTP)
-            window.location.href = BOT_CALLBACK_URL + "?idkey=" + idkey;
+        // Hiện cảnh báo Đã copy text đẹp mắt
+        function triggerToastEffect() {
+            const toast = document.getElementById('toast-notify');
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 2200);
         }
-
-        function showError(msg) {
-            timerWrapper.style.display = 'none';
-            startBtn.style.display = 'none';
-            errorIcon.style.display = 'block';
-            statusText.innerHTML = msg;
-        }
-
-        // Chuột PC
-        timerWrapper.addEventListener('mousedown', startHolding);
-        timerWrapper.addEventListener('mouseup', stopHolding);
-        timerWrapper.addEventListener('mouseleave', stopHolding); 
-        
-        // Cảm ứng Mobile
-        timerWrapper.addEventListener('touchstart', startHolding, {passive: false});
-        timerWrapper.addEventListener('touchend', stopHolding, {passive: false});
-        timerWrapper.addEventListener('touchcancel', stopHolding, {passive: false});
     </script>
 </body>
 </html>
