@@ -7,404 +7,446 @@
     
     <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
     
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* FONTS VÀ PHONG CÁCH NEON ANIME/WIBU ĐẸP MẮT */
-        @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;900&family=Orbitron:wght@600;900&display=swap');
-
+        /* RESET & CÀI ĐẶT CƠ BẢN */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             user-select: none;
-            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        body {
-            font-family: 'M PLUS Rounded 1c', 'Orbitron', sans-serif;
-            /* Hình nền Anime Waifu phong cách Cyberpunk/Lofi tối cuốn hút */
-            background: url('https://images3.alphacoders.com/132/1321743.jpeg') no-repeat center center fixed;
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Nunito', sans-serif;
+            overflow: hidden;
+            background-color: #050510;
+        }
+
+        /* HÌNH NỀN ANIME FULL MÀN HÌNH CHẤT LƯỢNG CAO */
+        .bg-image {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Thay ảnh anime cực đẹp, độ phân giải cao */
+            background: url('https://images.hdqwalls.com/download/anime-landscape-2024-4k-i9-1920x1080.jpg') no-repeat center center;
             background-size: cover;
-            color: #ffffff;
+            z-index: 0;
+            animation: bgZoom 20s infinite alternate linear;
+        }
+
+        @keyframes bgZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* LỚP PHỦ GRADIENT TẠO CHIỀU SÂU & LÀM NỔI BẬT KHUNG */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, rgba(15, 10, 35, 0.4) 0%, rgba(5, 5, 15, 0.85) 100%);
+            z-index: 1;
+        }
+
+        /* HIỆU ỨNG HẠT SÁNG LƠ LỬNG (PARTICLES) TẠO CẢM GIÁC THẦN TIÊN/ANIME */
+        .particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none;
+        }
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+            animation: floatUp infinite linear;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+        }
+
+        /* KHUNG CHÍNH (GLASSMORPHISM CAO CẤP) */
+        .main-wrapper {
+            position: relative;
+            z-index: 10;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Lớp phủ chuyển màu huyền ảo tối ưu độ tương phản cho Web */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, rgba(19, 11, 36, 0.75), rgba(9, 5, 16, 0.85));
-            z-index: 0;
-        }
-
-        /* KHUNG CHỨA GIAO DIỆN (GLASSMORPHISM) */
-        .card-container {
-            position: relative;
-            z-index: 1;
-            width: 90%;
-            max-width: 430px;
-            background: rgba(20, 16, 35, 0.65);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 2px solid #ff007f;
-            box-shadow: 0 0 25px rgba(255, 0, 127, 0.4), inset 0 0 15px rgba(0, 242, 254, 0.2);
-            border-radius: 20px;
-            padding: 40px 25px;
-            text-align: center;
-            border-bottom: 5px solid #00f2fe;
-        }
-
-        /* THIẾT KẾ TEXT H1 */
-        h1 {
-            font-size: 24px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #ffffff;
-            text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f;
-            margin-bottom: 30px;
-            line-height: 1.4;
-        }
-
-        /* HỆ THỐNG PHÂN CHIA BƯỚC MƯỢT MÀ */
-        .step-panel {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            height: 100%;
             width: 100%;
         }
 
-        .step-panel.active {
-            display: flex;
-            animation: animeShow 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-
-        @keyframes animeShow {
-            0% { opacity: 0; transform: scale(0.9) translateY(15px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        p.description {
-            font-size: 15px;
-            color: #e0e0fc;
-            margin-bottom: 20px;
-            font-weight: 700;
-            text-shadow: 0 0 4px rgba(0,0,0,0.6);
-        }
-
-        /* NÚT BẤM VÀO WEB */
-        .action-btn {
-            background: linear-gradient(90deg, #ff007f, #7f00ff);
+        .glass-card {
+            background: rgba(20, 20, 35, 0.45);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255, 0, 150, 0.1);
+            width: 90%;
+            max-width: 450px;
+            padding: 40px 30px;
+            text-align: center;
             color: #fff;
-            border: none;
-            padding: 14px 30px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 15px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.2s;
+        }
+
+        @keyframes cardEntrance {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* TIÊU ĐỀ */
+        .glass-card h1 {
+            font-size: 24px;
             font-weight: 900;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: linear-gradient(90deg, #00f2fe, #4facfe, #ff0844);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(79, 172, 254, 0.4);
+        }
+
+        /* PHẦN CHUYỂN BƯỚC (PANELS) */
+        .panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: all 0.4s ease;
+        }
+        .panel.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .desc-text {
+            font-size: 16px;
+            color: #d1d1e0;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* NÚT BẤM (GRADIENT & GLOW) */
+        .btn-epic {
+            background: linear-gradient(45deg, #ff0844 0%, #ffb199 100%);
+            border: none;
+            color: #fff;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 15px 40px;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 0 15px #ff007f;
+            box-shadow: 0 10px 20px rgba(255, 8, 68, 0.3);
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 25px #ff007f, 0 0 10px #00f2fe;
+        .btn-epic:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(255, 8, 68, 0.5);
+        }
+        .btn-epic:active {
+            transform: translateY(1px);
         }
 
-        /* SỐ ĐẾM TO TOẢ SÁNG */
-        .glow-counter {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 55px;
-            font-weight: 900;
-            margin: 15px 0;
-            color: #00f2fe;
-            text-shadow: 0 0 15px #00f2fe, 0 0 30px #ff007f;
-            letter-spacing: 2px;
+        /* SỐ ĐẾM (LẮC & THỜI GIAN) - FONT CYBERPUNK */
+        .cyber-counter {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 70px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 15px #00f2fe, 0 0 30px #00f2fe, 0 0 45px #00f2fe;
+            margin: 10px 0;
             cursor: pointer;
         }
 
-        .sub-hint {
-            font-size: 12px;
-            color: #ffb700;
+        .hint-text {
+            font-size: 13px;
+            color: #ffb199;
             margin-top: 5px;
-            font-weight: normal;
+            opacity: 0.9;
         }
 
-        /* ĐÁP ỨNG YÊU CẦU 5: Ô INPUT CHỨA KEY NHÌN LÀ MUỐN BẤM VÀO */
-        .key-input-box {
+        /* Ô CHỨA KEY (SANG TRỌNG & HIỆN ĐẠI) */
+        .key-box {
             width: 100%;
-            padding: 16px;
-            font-family: 'Orbitron', monospace;
-            font-size: 18px;
-            font-weight: 900;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 242, 254, 0.5);
+            border-radius: 15px;
+            padding: 20px 15px;
+            font-family: 'Rajdhani', monospace;
+            font-size: 24px;
+            font-weight: 700;
             color: #00f2fe;
-            background: rgba(10, 7, 20, 0.8);
-            border: 2px dashed #ff007f;
-            border-radius: 12px;
             text-align: center;
             outline: none;
             cursor: pointer;
-            box-shadow: inset 0 0 10px rgba(255, 0, 127, 0.5);
-            transition: all 0.3s;
-            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 0 15px rgba(0, 242, 254, 0.2);
+            margin-bottom: 10px;
         }
-
-        .key-input-box:hover {
+        .key-box:hover {
+            background: rgba(0, 242, 254, 0.1);
             border-color: #00f2fe;
-            background: rgba(20, 10, 35, 0.95);
-            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), inset 0 0 10px rgba(0, 242, 254, 0.2);
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4), inset 0 0 20px rgba(0, 242, 254, 0.3);
         }
 
-        /* BONG BÓNG THÔNG BÁO COPY (Ẩn đi và chỉ hiện khi click chép) */
-        .toast-msg {
-            display: none;
-            color: #00ff66;
-            font-size: 13px;
-            font-weight: 900;
-            margin-top: 12px;
-            text-shadow: 0 0 8px rgba(0, 255, 102, 0.6);
-            animation: pulse 1s infinite alternate;
+        /* TOAST THÔNG BÁO COPY */
+        .toast {
+            position: fixed;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            font-size: 15px;
+        }
+        .toast.show {
+            bottom: 40px;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(0.98); opacity: 0.8; }
-            100% { transform: scale(1.02); opacity: 1; }
-        }
-
-        /* SÓNG MUSIC VISUALIZER MÀU SẮC DANCE */
-        .music-bars {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            height: 35px;
-            gap: 5px;
-            margin-top: 25px;
-        }
-
-        .m-bar {
-            width: 6px;
-            height: 5px;
-            background: #ff007f;
-            border-radius: 3px 3px 0 0;
-            animation: dance 0.5s ease-in-out infinite alternate;
-            box-shadow: 0 0 8px #ff007f;
-        }
-        .m-bar:nth-child(2) { background: #7f00ff; animation-delay: 0.1s; box-shadow: 0 0 8px #7f00ff; }
-        .m-bar:nth-child(3) { background: #00f2fe; animation-delay: 0.2s; box-shadow: 0 0 8px #00f2fe; }
-        .m-bar:nth-child(4) { background: #ffff00; animation-delay: 0.3s; box-shadow: 0 0 8px #ffff00; }
-        .m-bar:nth-child(5) { background: #ff007f; animation-delay: 0.15s; box-shadow: 0 0 8px #ff007f; }
-
-        @keyframes dance {
-            0% { height: 6px; transform: scaleY(1); }
-            100% { height: 35px; transform: scaleY(1.1); }
-        }
     </style>
 </head>
 <body>
 
-    <audio id="audioStream" src="nhac.mp3" loop></audio>
+    <div class="bg-image"></div>
+    <div class="overlay"></div>
+    <div class="particles" id="particles"></div>
 
-    <div class="card-container">
-        <h1>Lấy Key Nhận Task Bot War Tuấn Ank</h1>
+    <audio id="bgMusic" src="music.mp3" loop></audio>
 
-        <div id="panel-start" class="step-panel active">
-            <p class="description">Chào mừng bạn! Hệ thống mã hóa đã sẵn sàng khởi chạy.</p>
-            <button class="action-btn" onclick="initializeSystem()">CLICK ĐỂ TIẾP TỤC</button>
-            <div class="music-bars">
-                <div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div><div class="m-bar"></div>
+    <div class="main-wrapper">
+        <div class="glass-card">
+            
+            <h1>Lấy Key Nhận Task Bot War Tuấn Ank</h1>
+
+            <div id="panel-start" class="panel active">
+                <p class="desc-text">Chào mừng bạn đến với hệ thống xác thực. Nhấn nút bên dưới để cấp quyền và phát nhạc.</p>
+                <button class="btn-epic" onclick="startSystem()">XÁC NHẬN VÀO WEB</button>
             </div>
-        </div>
 
-        <div id="panel-step1" class="step-panel">
-            <p class="description">Bước 1: Xác thực Capcha bảo vệ hệ thống</p>
-            <div class="h-captcha" data-sitekey="3d4889fe-b8ac-4fc0-9502-57fcc8cece26" data-callback="captchaPassed"></div>
-        </div>
+            <div id="panel-step1" class="panel">
+                <p class="desc-text"><b>Bước 1/3:</b> Xác minh bảo mật hệ thống</p>
+                <div class="h-captcha" data-sitekey="3d4889fe-b8ac-4fc0-9502-57fcc8cece26" data-callback="onCaptchaVerified"></div>
+            </div>
 
-        <div id="panel-step2" class="step-panel">
-            <p class="description">Bước 2: Cầm điện thoại và lắc mạnh 5 lần liên tục</p>
-            <div class="glow-counter" id="shake-display" onclick="pcBypassClick()">0/5</div>
-            <p class="sub-hint">⚠️ Dừng lại giữa chừng hoặc không lắc sẽ tự động Reset về 0/5!</p>
-        </div>
+            <div id="panel-step2" class="panel">
+                <p class="desc-text"><b>Bước 2/3:</b> Hãy lắc mạnh điện thoại của bạn 5 lần</p>
+                <div class="cyber-counter" id="shake-counter" onclick="bypassPCClick()">0/5</div>
+                <p class="hint-text">⚠️ Không lắc hoặc ngừng lắc sẽ tự reset về 0</p>
+            </div>
 
-        <div id="panel-step3" class="step-panel">
-            <p class="description">Bước 3: Vui lòng đợi cấu hình mã hóa Key...</p>
-            <div class="glow-counter" id="timer-display">10s</div>
-        </div>
+            <div id="panel-step3" class="panel">
+                <p class="desc-text"><b>Bước 3/3:</b> Đang tạo mã hóa Key an toàn...</p>
+                <div class="cyber-counter" id="timer-counter">10s</div>
+            </div>
 
-        <div id="panel-final" class="step-panel">
-            <p class="description" style="color: #00ff66;">🎉 Chúc mừng! Đã tạo Key thành công.</p>
-            <p class="sub-hint" style="margin-bottom: 5px; color: #fff;">Chạm trực tiếp vào ô bên dưới để tự động sao chép:</p>
-            
-            <input type="text" id="generated-key-field" class="key-input-box" readonly onclick="autoCopyKey(this)">
-            
-            <div class="toast-msg" id="toast-notify">⚡ ĐÃ TỰ ĐỘNG SAO CHÉP KEY THÀNH CÔNG!</div>
+            <div id="panel-final" class="panel">
+                <p class="desc-text" style="color: #00f2fe; font-weight: bold;">🎉 Xác thực thành công! Key của bạn đây:</p>
+                <input type="text" id="final-key" class="key-box" readonly onclick="copyKey()">
+                <p class="hint-text" style="color: #fff;">(Chạm vào Key để tự động sao chép)</p>
+            </div>
+
         </div>
     </div>
 
+    <div id="toastNotif" class="toast">Đã chép Key vào khay nhớ tạm!</div>
+
     <script>
-        let stage = 0;
+        /* TẠO HIỆU ỨNG HẠT SÁNG CHO ĐẸP MẮT */
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for(let i=0; i<30; i++){
+                let p = document.createElement('div');
+                p.classList.add('particle');
+                let size = Math.random() * 5 + 2;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(p);
+            }
+        }
+        createParticles();
+
+        /* BIẾN ĐIỀU KHIỂN LOGIC */
+        let currentStep = 0;
         let shakePoints = 0;
-        let lastCheck = 0;
-        let idleResetTimer = null;
+        let lastShakeTime = 0;
+        let shakeResetTimer = null;
 
-        function initializeSystem() {
-            // Kích hoạt âm nhạc
-            const track = document.getElementById('audioStream');
-            track.volume = 0.6;
-            track.play().catch(err => console.log("Không thể tự phát nhạc: ", err));
+        /* HÀM CHUYỂN MÀN HÌNH MƯỢT MÀ */
+        function switchPanel(target) {
+            document.querySelectorAll('.panel').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.getElementById(target).classList.add('active');
+        }
 
-            // Xin quyền thiết bị nếu dùng iOS
+        /* KHỞI ĐỘNG HỆ THỐNG (BẬT NHẠC VÀ XIN QUYỀN MOTION IOS) */
+        function startSystem() {
+            // Phát nhạc
+            const audio = document.getElementById('bgMusic');
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Trình duyệt chặn Audio: ", e));
+
+            // Xin quyền iOS 13+
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission().then(state => {
-                    if (state === 'granted') console.log("Sensors active");
-                }).catch(console.error);
+                DeviceMotionEvent.requestPermission().catch(console.error);
             }
-            changeStage(1);
+
+            switchPanel('panel-step1');
         }
 
-        // Logic UI chuyển bước
-        function changeStage(targetStage) {
-            stage = targetStage;
-            document.querySelectorAll('.step-panel').forEach(panel => panel.classList.remove('active'));
-            
-            if (targetStage === 1) {
-                document.getElementById('panel-step1').classList.add('active');
-            } else if (targetStage === 2) {
-                document.getElementById('panel-step2').classList.add('active');
-                activateShakeTracking();
-            } else if (targetStage === 3) {
-                document.getElementById('panel-step3').classList.add('active');
-                runCountdown();
-            } else if (targetStage === 4) {
-                document.getElementById('panel-final').classList.add('active');
-                buildRandomKey();
-            }
+        /* XONG HCAPTCHA (BƯỚC 1) */
+        function onCaptchaVerified(token) {
+            setTimeout(() => {
+                switchPanel('panel-step2');
+                startShakeListener();
+            }, 500);
         }
 
-        function captchaPassed(token) {
-            setTimeout(() => { changeStage(2); }, 500);
-        }
+        /* LOGIC LẮC ĐIỆN THOẠI (BƯỚC 2) */
+        function handleMotion(event) {
+            let acc = event.accelerationIncludingGravity;
+            if (!acc || acc.x === null) return;
 
-        /* ===== MODULE LẮC ĐIỆN THOẠI CỰC CHUẨN ===== */
-        function motionTrigger(event) {
-            if (stage !== 2) return;
-            
-            let movement = event.accelerationIncludingGravity;
-            if (!movement || movement.x === null) return;
+            let force = Math.sqrt(acc.x * acc.x + acc.y * acc.y + acc.z * acc.z);
+            let now = Date.now();
 
-            let magnitude = Math.sqrt(movement.x * movement.x + movement.y * movement.y + movement.z * movement.z);
-            let timeNow = Date.now();
-
-            if (magnitude > 19) {
-                if (timeNow - lastCheck > 380) { // Không tính lắc đôi nếu quá sát nhau
+            // Lực lắc > 18 được tính là 1 lần lắc
+            if (force > 18) {
+                if (now - lastShakeTime > 400) { 
                     shakePoints++;
-                    lastCheck = timeNow;
-                    document.getElementById('shake-display').innerText = shakePoints + "/5";
+                    lastShakeTime = now;
+                    document.getElementById('shake-counter').innerText = shakePoints + "/5";
 
-                    // Hủy Timer cũ. Nếu ngừng lắc 2 giây thì reset số 0/5 (Timeout)
-                    clearTimeout(idleResetTimer);
-                    idleResetTimer = setTimeout(() => {
+                    // QUAN TRỌNG: Nếu đang lắc mà dừng 2 giây thì tự quay lại 0/5
+                    clearTimeout(shakeResetTimer);
+                    shakeResetTimer = setTimeout(() => {
                         shakePoints = 0;
-                        document.getElementById('shake-count-display-bypass-text')?.remove();
-                        document.getElementById('shake-display').innerText = "0/5";
+                        document.getElementById('shake-counter').innerText = "0/5";
                     }, 2000);
 
-                    // Đạt 5 lần lắc thì chuyển màn hình ngay
+                    // Lắc đủ 5 lần thì qua bước
                     if (shakePoints >= 5) {
-                        clearTimeout(idleResetTimer);
-                        window.removeEventListener('devicemotion', motionTrigger);
-                        setTimeout(() => { changeStage(3); }, 500);
+                        clearTimeout(shakeResetTimer);
+                        window.removeEventListener('devicemotion', handleMotion);
+                        setTimeout(() => {
+                            switchPanel('panel-step3');
+                            startCountdown();
+                        }, 500);
                     }
                 }
             }
         }
 
-        function activateShakeTracking() {
+        function startShakeListener() {
             if (typeof DeviceMotionEvent === 'undefined') {
-                document.getElementById('shake-display').innerText = "0/5";
-                let tip = document.createElement("p");
-                tip.id = "shake-count-display-bypass-text";
-                tip.className = "sub-hint";
-                tip.innerText = "(Thiết bị không có cảm biến, hãy bấm chuột trực tiếp vào số '0/5' để qua)";
-                document.getElementById('panel-step2').appendChild(tip);
+                document.getElementById('shake-counter').innerText = "0/5 (Chạm để qua)";
             } else {
-                window.addEventListener('devicemotion', motionTrigger);
+                window.addEventListener('devicemotion', handleMotion);
             }
         }
 
-        function pcBypassClick() {
-            if (stage !== 2) return;
+        /* MẸO TEST BẰNG PC: CHẠM VÀO SỐ 0/5 */
+        function bypassPCClick() {
             shakePoints++;
-            document.getElementById('shake-display').innerText = shakePoints + "/5";
+            document.getElementById('shake-counter').innerText = shakePoints + "/5";
             
-            clearTimeout(idleResetTimer);
-            idleResetTimer = setTimeout(() => {
+            clearTimeout(shakeResetTimer);
+            shakeResetTimer = setTimeout(() => {
                 shakePoints = 0;
-                document.getElementById('shake-display').innerText = "0/5";
+                document.getElementById('shake-counter').innerText = "0/5";
             }, 2000);
 
-            if (shakePoints >= 5) {
-                clearTimeout(idleResetTimer);
-                window.removeEventListener('devicemotion', motionTrigger);
-                setTimeout(() => { changeStage(3); }, 400);
+            if(shakePoints >= 5) {
+                clearTimeout(shakeResetTimer);
+                window.removeEventListener('devicemotion', handleMotion);
+                setTimeout(() => {
+                    switchPanel('panel-step3');
+                    startCountdown();
+                }, 400);
             }
         }
 
-        /* ===== ĐẾM NGƯỢC 10 GIÂY ===== */
-        function runCountdown() {
-            let secondsLeft = 10;
-            const timerView = document.getElementById('timer-display');
-            timerView.innerText = secondsLeft + "s";
+        /* LOGIC ĐẾM NGƯỢC 10S (BƯỚC 3) */
+        function startCountdown() {
+            let time = 10;
+            const timerEl = document.getElementById('timer-counter');
+            timerEl.innerText = time + "s";
 
-            let clock = setInterval(() => {
-                secondsLeft--;
-                timerView.innerText = secondsLeft + "s";
-
-                if (secondsLeft <= 0) {
-                    clearInterval(clock);
-                    changeStage(4);
+            let interval = setInterval(() => {
+                time--;
+                timerEl.innerText = time + "s";
+                if (time <= 0) {
+                    clearInterval(interval);
+                    generateAndShowKey();
                 }
             }, 1000);
         }
 
-        /* ===== TẠO KEY & TÍNH NĂNG TỰ SAO CHÉP ===== */
-        function buildRandomKey() {
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            let outKey = '';
+        /* TẠO KEY, ĐỔI URL VÀ HIỂN THỊ (BƯỚC CHÓT) */
+        function generateAndShowKey() {
+            // 1. Tạo random 20 kí tự
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let newKey = '';
             for (let i = 0; i < 20; i++) {
-                outKey += characters.charAt(Math.floor(Math.random() * characters.length));
+                newKey += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            document.getElementById('generated-key-field').value = outKey;
+
+            // 2. Chuyển sang màn hình cuối
+            switchPanel('panel-final');
+            document.getElementById('final-key').value = newKey;
+
+            // 3. ĐÁP ỨNG YÊU CẦU 6: Tự động đổi URL sang dạng /?idkey={random_key}
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?idkey=' + newKey;
+            window.history.pushState({path: newUrl}, '', newUrl);
         }
 
-        // KHI NGƯỜI DÙNG CHẠM/CLICK VÀO TEXTBOX LÀ TỰ COPY
-        function autoCopyKey(inputElement) {
-            if (!inputElement.value) return;
-            
-            navigator.clipboard.writeText(inputElement.value).then(() => {
-                triggerToastEffect();
+        /* ĐÁP ỨNG YÊU CẦU 5: TỰ SAO CHÉP KHI BẤM VÀO Ô KEY */
+        function copyKey() {
+            const keyInput = document.getElementById('final-key');
+            if(!keyInput.value) return;
+
+            navigator.clipboard.writeText(keyInput.value).then(() => {
+                showToast();
             }).catch(() => {
-                inputElement.select();
-                inputElement.setSelectionRange(0, 99999);
+                keyInput.select();
                 document.execCommand("copy");
-                triggerToastEffect();
+                showToast();
             });
         }
 
-        // Hiện cảnh báo Đã copy text đẹp mắt
-        function triggerToastEffect() {
-            const toast = document.getElementById('toast-notify');
-            toast.style.display = 'block';
-            setTimeout(() => { toast.style.display = 'none'; }, 2200);
+        function showToast() {
+            const toast = document.getElementById('toastNotif');
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
         }
     </script>
 </body>
